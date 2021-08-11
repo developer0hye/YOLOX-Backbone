@@ -1,12 +1,13 @@
-from yolox_backbone import create_model, list_models
+import yolox_backbone
 import torch
+from pprint import pprint
 
-print(list_models())
+pprint(yolox_backbone.list_models())
 
-model_names = list_models()
+model_names = yolox_backbone.list_models()
 for model_name in model_names:
     print("model_name: ", model_name)
-    model = create_model(model_name=model_name, pretrained=True)
+    model = yolox_backbone.create_model(model_name=model_name, pretrained=True)
 
     input_tensor = torch.randn((1, 3, 640, 640))
     fpn_output_tensors = model(input_tensor)
