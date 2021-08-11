@@ -3,6 +3,7 @@
 # Copyright (c) 2014-2021 Megvii Inc. All rights reserved.
 
 from .yolo_pafpn import YOLOPAFPN
+from .yolo_fpn import YOLOFPN
 from ..utils.utils import download_from_url
 from ..utils.torch_utils import intersect_dicts 
 
@@ -10,12 +11,13 @@ import torch
 import torch.nn as nn
 import os
 
-model_dict = {"yolox-s": {"depth_scaling_factor": 0.33, "width_scaling_factor": 0.50, "depthwise": False}, 
-              "yolox-m": {"depth_scaling_factor": 0.67, "width_scaling_factor": 0.75, "depthwise": False}, 
-              "yolox-l": {"depth_scaling_factor": 1.0, "width_scaling_factor": 1.0, "depthwise": False}, 
-              "yolox-x": {"depth_scaling_factor": 1.33, "width_scaling_factor": 1.25, "depthwise": False}, 
-              "yolox-nano": {"depth_scaling_factor": 0.33, "width_scaling_factor": 0.25, "depthwise": True}, 
-              "yolox-tiny": {"depth_scaling_factor": 0.33, "width_scaling_factor": 0.375, "depthwise": False}
+model_dict = {"yolox-s": {"depth": 0.33, "width": 0.50, "depthwise": False}, 
+              "yolox-m": {"depth": 0.67, "width": 0.75, "depthwise": False}, 
+              "yolox-l": {"depth": 1.0, "width": 1.0, "depthwise": False}, 
+              "yolox-x": {"depth": 1.33, "width": 1.25, "depthwise": False}, 
+              "yolox-nano": {"depth": 0.33, "width": 0.25, "depthwise": True}, 
+              "yolox-tiny": {"depth": 0.33, "width": 0.375, "depthwise": False},
+              "yolox-darknet53": {"depth": 53}
               }
 
 model_urls = {"yolox-s": "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_s.pth", 
@@ -23,7 +25,8 @@ model_urls = {"yolox-s": "https://github.com/Megvii-BaseDetection/storage/releas
               "yolox-l": "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_l.pth",
               "yolox-x": "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_x.pth",
               "yolox-nano": "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_nano.pth",  
-              "yolox-tiny": "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_tiny_32dot8.pth"
+              "yolox-tiny": "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_tiny_32dot8.pth",
+              "yolox-darknet53" : "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_darknet53.pth"
              }
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -33,7 +36,9 @@ def create_model(model_name, pretrained=False):
     if not model_name in model_dict.keys():
         raise RuntimeError(f"Unknown model {model_name}")
     
-    model = YOLOXBackbone(**model_dict[model_name])
+    Backbone = YOLOFPN if model_name == "yolox-darknet53" else YOLOPAFPN
+    
+    model = Backbone(**model_dict[model_name])
     
     if pretrained:
         filename = os.path.join(BASE_DIR, model_name + ".pth")
@@ -41,29 +46,21 @@ def create_model(model_name, pretrained=False):
             download_from_url(url=model_urls[model_name], filename=filename)
         
         assert os.path.isfile(filename), f"{model_name} weights file doesn't exist"
+        
         chkpt = torch.load(filename)
-        pretrained_model_state_dict = chkpt["model"]
-        pretrained_model_state_dict = intersect_dicts(pretrained_model_state_dict, model.state_dict())
+        state_dict = chkpt["model"]
+        backbone_state_dict = {}
+        for k, v in state_dict.items():
+            if "backbone." in k:
+                # (1) k = backbone.backbone.* or (2) k = backbone.*
+                k = k[9:]
+                # (1) k = backbone.* or (2) k = *
+            backbone_state_dict[k] = v
+        pretrained_model_state_dict = intersect_dicts(backbone_state_dict, model.state_dict())
         
-        model.load_state_dict(pretrained_model_state_dict)
-        
+        assert len(pretrained_model_state_dict) == len(model.state_dict())
+        model.load_state_dict(pretrained_model_state_dict, len(model.state_dict()))
     return model
 
 def list_models():
     return [key for key in model_dict.keys()]
-
-class YOLOXBackbone(nn.Module):
-    """
-    YOLOX Backbone model module.
-    """
-
-    def __init__(self, 
-                 depth_scaling_factor,
-                 width_scaling_factor, 
-                 depthwise=False):
-        super().__init__()
-        self.backbone = YOLOPAFPN(depth=depth_scaling_factor, width=width_scaling_factor, depthwise=depthwise)
-    def forward(self, x):
-        # fpn output content features of [dark3, dark4, dark5]
-        fpn_outs = self.backbone(x)
-        return fpn_outs
