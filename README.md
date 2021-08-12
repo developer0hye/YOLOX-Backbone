@@ -2,6 +2,13 @@
 
 `yolox_backbone` is a deep-learning library and is a collection of [YOLOX](https://github.com/Megvii-BaseDetection/YOLOX) backbone models.
 
+## Install
+
+```
+pip install yolox_backbone
+```
+
+
 ## Load a Pretrained Model
 
 Pretrained models can be loaded using yolox_backbone.create_model.
