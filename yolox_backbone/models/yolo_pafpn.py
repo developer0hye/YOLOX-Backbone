@@ -19,6 +19,7 @@ class YOLOPAFPN(nn.Module):
         depth=1.0,
         width=1.0,
         in_features=("dark3", "dark4", "dark5"),
+        out_features=["P3", "P4", "P5"],
         in_channels=[256, 512, 1024],
         depthwise=False,
         act="silu",
@@ -26,6 +27,8 @@ class YOLOPAFPN(nn.Module):
         super().__init__()
         self.backbone = CSPDarknet(depth, width, depthwise=depthwise, act=act)
         self.in_features = in_features
+        self.out_features = out_features
+
         self.in_channels = in_channels
         Conv = DWConv if depthwise else BaseConv
 
@@ -89,6 +92,7 @@ class YOLOPAFPN(nn.Module):
         """
 
         #  backbone
+        outputs = {}
         out_features = self.backbone(input)
         features = [out_features[f] for f in self.in_features]
         [x2, x1, x0] = features
@@ -102,14 +106,18 @@ class YOLOPAFPN(nn.Module):
         f_out1 = self.upsample(fpn_out1)  # 256/8
         f_out1 = torch.cat([f_out1, x2], 1)  # 256->512/8
         pan_out2 = self.C3_p3(f_out1)  # 512->256/8
-
-        p_out1 = self.bu_conv2(pan_out2)  # 256->256/16
-        p_out1 = torch.cat([p_out1, fpn_out1], 1)  # 256->512/16
-        pan_out1 = self.C3_n3(p_out1)  # 512->512/16
-
-        p_out0 = self.bu_conv1(pan_out1)  # 512->512/32
-        p_out0 = torch.cat([p_out0, fpn_out0], 1)  # 512->1024/32
-        pan_out0 = self.C3_n4(p_out0)  # 1024->1024/32
-
-        outputs = (pan_out2, pan_out1, pan_out0)
-        return outputs
+        outputs["P3"] = pan_out2
+        
+        if "P4" in self.out_features or "P5" in self.out_features:
+            p_out1 = self.bu_conv2(pan_out2)  # 256->256/16
+            p_out1 = torch.cat([p_out1, fpn_out1], 1)  # 256->512/16
+            pan_out1 = self.C3_n3(p_out1)  # 512->512/16
+            outputs["P4"] = pan_out1
+        
+        if "P5" in self.out_features:
+            p_out0 = self.bu_conv1(pan_out1)  # 512->512/32
+            p_out0 = torch.cat([p_out0, fpn_out0], 1)  # 512->1024/32
+            pan_out0 = self.C3_n4(p_out0)  # 1024->1024/32
+            outputs["P5"] = pan_out0
+        
+        return {k:v for k, v in outputs.items() if k in self.out_features}
