@@ -40,7 +40,7 @@ pprint(model_names)
 
 ## Select specific feature levels
 
-There is on creation argument impacting the output features.
+There is one creation argument impacting the output features.
 
 - `out_features` selects which FPN features to output
 
