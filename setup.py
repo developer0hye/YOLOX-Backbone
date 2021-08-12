@@ -12,7 +12,7 @@ with open("README.md", "r", encoding="utf-8") as f:
     
 setuptools.setup(
     name="yolox_backbone",
-    version="0.0.1",
+    version=version,
     license='Apache',
     python_requires=">=3.6",
     author="Yonghye Kwon",
@@ -22,6 +22,8 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/developer0hye/YOLOX-Backbone",
     packages=setuptools.find_packages(),
+    zip_safe=False,
+    keywords=['yolox'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: Apache Software License",
