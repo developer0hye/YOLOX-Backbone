@@ -44,7 +44,7 @@ There is on creation argument impacting the output features.
 
 - `out_features` selects which FPN features to output
 
-<img src="./figures/out_features.png" width="80%">
+<img src="./figures/out_features.png" width="100%">
 
 
 ## Example
