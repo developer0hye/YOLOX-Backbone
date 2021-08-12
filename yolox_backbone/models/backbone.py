@@ -31,14 +31,18 @@ model_urls = {"yolox-s": "https://github.com/Megvii-BaseDetection/storage/releas
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def create_model(model_name, pretrained=False):
+def create_model(model_name, pretrained=False, out_features=["P3", "P4", "P5"]):
     model_name = model_name.lower()
     if not model_name in model_dict.keys():
         raise RuntimeError(f"Unknown model {model_name}")
     
+    out_features = list(set(out_features))
+    if not all(out_feature in ["P3", "P4", "P5"] for out_feature in out_features):
+        raise RuntimeError(f'The values in out_features must be one of ["P3", "P4", "P5"].')
+
     Backbone = YOLOFPN if model_name == "yolox-darknet53" else YOLOPAFPN
     
-    model = Backbone(**model_dict[model_name])
+    model = Backbone(**model_dict[model_name], out_features=out_features)
     
     if pretrained:
         filename = os.path.join(BASE_DIR, model_name + ".pth")

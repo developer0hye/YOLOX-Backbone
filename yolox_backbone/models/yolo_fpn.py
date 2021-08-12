@@ -18,11 +18,13 @@ class YOLOFPN(nn.Module):
         self,
         depth=53,
         in_features=["dark3", "dark4", "dark5"],
+        out_features=["P3", "P4", "P5"],
     ):
         super().__init__()
 
         self.backbone = Darknet(depth)
         self.in_features = in_features
+        self.out_features = out_features
 
         # out 1
         self.out1_cbl = self._make_cbl(512, 256, 1)
@@ -67,17 +69,22 @@ class YOLOFPN(nn.Module):
         out_features = self.backbone(inputs)
         x2, x1, x0 = [out_features[f] for f in self.in_features]
 
-        #  yolo branch 1
-        x1_in = self.out1_cbl(x0)
-        x1_in = self.upsample(x1_in)
-        x1_in = torch.cat([x1_in, x1], 1)
-        out_dark4 = self.out1(x1_in)
+        outputs = {"P5": x0}
+        
+        if "P3" in self.out_features or "P4" in self.out_features:
+            #  yolo branch 1
+            x1_in = self.out1_cbl(x0)
+            x1_in = self.upsample(x1_in)
+            x1_in = torch.cat([x1_in, x1], 1)
+            out_dark4 = self.out1(x1_in)
+            outputs["P4"] = out_dark4
 
-        #  yolo branch 2
-        x2_in = self.out2_cbl(out_dark4)
-        x2_in = self.upsample(x2_in)
-        x2_in = torch.cat([x2_in, x2], 1)
-        out_dark3 = self.out2(x2_in)
+        if "P3" in self.out_features:
+            #  yolo branch 2
+            x2_in = self.out2_cbl(out_dark4)
+            x2_in = self.upsample(x2_in)
+            x2_in = torch.cat([x2_in, x2], 1)
+            out_dark3 = self.out2(x2_in)
+            outputs["P3"] = out_dark3
 
-        outputs = (out_dark3, out_dark4, x0)
-        return outputs
+        return {k:v for k, v in outputs.items() if k in self.out_features}
