@@ -4,7 +4,7 @@
 
 ## Load a Pretrained Model
 
-Pretrained models can be loaded using yolox_backbone.create_model
+Pretrained models can be loaded using yolox_backbone.create_model.
 
 ```python
 import yolox_backbone
