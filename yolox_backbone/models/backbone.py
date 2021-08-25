@@ -20,13 +20,13 @@ model_dict = {"yolox-s": {"depth": 0.33, "width": 0.50, "depthwise": False},
               "yolox-darknet53": {"depth": 53}
               }
 
-model_urls = {"yolox-s": "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_s.pth", 
-              "yolox-m": "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_m.pth", 
-              "yolox-l": "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_l.pth",
-              "yolox-x": "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_x.pth",
-              "yolox-nano": "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_nano.pth",  
-              "yolox-tiny": "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_tiny_32dot8.pth",
-              "yolox-darknet53" : "https://github.com/Megvii-BaseDetection/storage/releases/download/0.0.1/yolox_darknet53.pth"
+model_urls = {"yolox-s": "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_s.pth", 
+              "yolox-m": "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_m.pth", 
+              "yolox-l": "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_l.pth",
+              "yolox-x": "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_x.pth",
+              "yolox-nano": "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_nano.pth",  
+              "yolox-tiny": "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_tiny.pth",
+              "yolox-darknet53" : "https://github.com/Megvii-BaseDetection/YOLOX/releases/download/0.1.1rc0/yolox_darknet.pth"
              }
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -64,6 +64,16 @@ def create_model(model_name, pretrained=False, out_features=["P3", "P4", "P5"]):
         
         assert len(pretrained_model_state_dict) == len(model.state_dict())
         model.load_state_dict(pretrained_model_state_dict, len(model.state_dict()))
+    
+    
+    def init_yolo(M):
+        for m in M.modules():
+            if isinstance(m, nn.BatchNorm2d):
+                m.eps = 1e-3
+                m.momentum = 0.03
+    
+    model.apply(init_yolo)
+    
     return model
 
 def list_models():
