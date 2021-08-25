@@ -51,7 +51,12 @@ def create_model(model_name, pretrained=False, out_features=["P3", "P4", "P5"]):
         
         assert os.path.isfile(filename), f"{model_name} weights file doesn't exist"
         
-        chkpt = torch.load(filename)
+        try:
+            chkpt = torch.load(filename)
+        except:
+            os.remove(filename)
+            raise RuntimeError(f'Pretrained {model_name} weights were not properly downloaded. Restart your program! Pretrained weights will be downloaded again.')  
+
         state_dict = chkpt["model"]
         backbone_state_dict = {}
         for k, v in state_dict.items():
