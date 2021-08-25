@@ -7,11 +7,13 @@ pprint(yolox_backbone.list_models())
 model_names = yolox_backbone.list_models()
 for model_name in model_names:
     print("model_name: ", model_name)
+    
     model = yolox_backbone.create_model(model_name=model_name, 
                                         pretrained=True, 
                                         out_features=["P3", "P4", "P5"]
                                         )
-
+    model.eval()
+    
     input_tensor = torch.randn((1, 3, 640, 640))
     fpn_output_tensors = model(input_tensor)
 
