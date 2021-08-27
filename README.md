@@ -20,6 +20,24 @@ m = yolox_backbone.create_model('yolox-s', pretrained=True)
 m.eval()
 ```
 
+## Query the feature information
+
+After a feature backbone has been created, it can be queried to provide channel information to the downstream heads without requiring static config or hardcoded constants. The `.out_channels` attribute is a dictionary encapsulating the information about the feature extraction points.
+
+```python
+import yolox_backbone
+
+m = yolox_backbone.create_model('yolox-s', pretrained=True)
+print('Feature channels: ', m.out_channels)
+```
+
+Output:
+
+```python
+Feature channels:  {'P3': 128, 'P4': 256, 'P5': 512}
+```
+
+
 ## List Supported Models
 
 ```python
@@ -28,8 +46,12 @@ from pprint import pprint
 
 model_names = yolox_backbone.list_models()
 pprint(model_names)
+```
 
->>> ['yolox-s',
+Output:
+
+```python
+['yolox-s',
  'yolox-m',
  'yolox-l',
  'yolox-x',
@@ -80,7 +102,7 @@ for model_name in model_names:
 ```
 
 Output:
-```
+```python
 ['yolox-s', 'yolox-m', 'yolox-l', 'yolox-x', 'yolox-nano', 'yolox-tiny', 'yolox-darknet53']
 model_name:  yolox-s
 input_tensor.shape:  torch.Size([1, 3, 640, 640])
@@ -125,3 +147,7 @@ p4.shape:  torch.Size([1, 256, 40, 40])
 p5.shape:  torch.Size([1, 512, 20, 20])
 --------------------------------------------------
 ```
+
+# Acknowledgement
+
+The docs are heavily based on [timm docs](https://rwightman.github.io/pytorch-image-models/). Thanks for their awesome works.
