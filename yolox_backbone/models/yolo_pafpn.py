@@ -30,6 +30,7 @@ class YOLOPAFPN(nn.Module):
         self.out_features = out_features
 
         self.in_channels = in_channels
+        self.out_channels = {}
         Conv = DWConv if depthwise else BaseConv
 
         self.upsample = nn.Upsample(scale_factor=2, mode="nearest")
@@ -56,6 +57,7 @@ class YOLOPAFPN(nn.Module):
             depthwise=depthwise,
             act=act,
         )
+        self.out_channels["P3"] = int(in_channels[0] * width)
 
         # bottom-up conv
         self.bu_conv2 = Conv(
@@ -69,6 +71,7 @@ class YOLOPAFPN(nn.Module):
             depthwise=depthwise,
             act=act,
         )
+        self.out_channels["P4"] = int(in_channels[1] * width)
 
         # bottom-up conv
         self.bu_conv1 = Conv(
@@ -82,6 +85,7 @@ class YOLOPAFPN(nn.Module):
             depthwise=depthwise,
             act=act,
         )
+        self.out_channels["P5"] = int(in_channels[2] * width)
 
     def forward(self, input):
         """
