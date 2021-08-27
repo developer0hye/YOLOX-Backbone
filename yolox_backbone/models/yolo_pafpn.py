@@ -26,6 +26,8 @@ class YOLOPAFPN(nn.Module):
     ):
         super().__init__()
         self.backbone = CSPDarknet(depth, width, depthwise=depthwise, act=act)
+        self.scaling_factor = {"depth": depth, "width": width}
+        
         self.in_features = in_features
         self.out_features = out_features
 
