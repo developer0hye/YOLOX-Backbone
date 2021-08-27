@@ -25,6 +25,7 @@ class YOLOFPN(nn.Module):
         self.backbone = Darknet(depth)
         self.in_features = in_features
         self.out_features = out_features
+        self.scaling_factor = {"depth": 1.0, "width": 1.0}
         self.out_channels = {"P3": 128, "P4": 256, "P5": 512}
 
         # out 1

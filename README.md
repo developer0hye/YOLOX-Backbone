@@ -20,6 +20,23 @@ m = yolox_backbone.create_model('yolox-s', pretrained=True)
 m.eval()
 ```
 
+## Query the architecture information
+
+After a feature backbone has been created, it can be queried to provide architecture information. The `.scaling_factor` attribute is a dictionary encapsulating the information about the scaling factor.
+
+```python
+import yolox_backbone
+
+m = yolox_backbone.create_model('yolox-s', pretrained=True)
+print('Network scaling factor: ', m.scaling_factor)
+```
+
+Output:
+
+```python
+Network scaling factor:  {'depth': 0.33, 'width': 0.5}
+```
+
 ## Query the feature information
 
 After a feature backbone has been created, it can be queried to provide channel information to the downstream heads without requiring static config or hardcoded constants. The `.out_channels` attribute is a dictionary encapsulating the information about the feature extraction points.
