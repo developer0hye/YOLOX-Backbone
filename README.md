@@ -85,6 +85,21 @@ There is one creation argument impacting the output features.
 
 <img src="./figures/out_features.png" width="100%">
 
+## Support for different number of input channels
+
+You can create the model without the constraint that the number of input channel is 3.
+
+But you cannot set pretrained to `True`.
+ 
+```python
+import yolox_backbone
+
+model = yolox_backbone.create_model(model_name=model_name, 
+                                    pretrained=False, 
+                                    input_tensor_channels=4,
+                                    out_features=["P3", "P4", "P5"]
+                                    )
+```
 
 ## Example
 
