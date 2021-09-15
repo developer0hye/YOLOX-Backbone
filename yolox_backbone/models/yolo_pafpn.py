@@ -16,6 +16,7 @@ class YOLOPAFPN(nn.Module):
 
     def __init__(
         self,
+        input_tensor_channels=3,
         depth=1.0,
         width=1.0,
         in_features=("dark3", "dark4", "dark5"),
@@ -25,7 +26,7 @@ class YOLOPAFPN(nn.Module):
         act="silu",
     ):
         super().__init__()
-        self.backbone = CSPDarknet(depth, width, depthwise=depthwise, act=act)
+        self.backbone = CSPDarknet(input_tensor_channels, depth, width, depthwise=depthwise, act=act)
         self.scaling_factor = {"depth": depth, "width": width}
         
         self.in_features = in_features
