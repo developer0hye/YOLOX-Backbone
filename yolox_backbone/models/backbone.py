@@ -31,7 +31,10 @@ model_urls = {"yolox-s": "https://github.com/Megvii-BaseDetection/YOLOX/releases
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def create_model(model_name, pretrained=False, out_features=["P3", "P4", "P5"]):
+def create_model(model_name, 
+                 pretrained=False, 
+                 input_tensor_channels=3, 
+                 out_features=["P3", "P4", "P5"]):
     model_name = model_name.lower()
     if not model_name in model_dict.keys():
         raise RuntimeError(f"Unknown model {model_name}")
@@ -42,9 +45,14 @@ def create_model(model_name, pretrained=False, out_features=["P3", "P4", "P5"]):
 
     Backbone = YOLOFPN if model_name == "yolox-darknet53" else YOLOPAFPN
     
-    model = Backbone(**model_dict[model_name], out_features=out_features)
-    
+    model = Backbone(**model_dict[model_name], 
+                     input_tensor_channels=input_tensor_channels,
+                     out_features=out_features)
+        
     if pretrained:
+        
+        assert input_tensor_channels == 3, f"There are no pretrained weights for the model whose the number of input tensor's channel is {input_tensor_channels}"
+        
         filename = os.path.join(BASE_DIR, model_name + ".pth")
         if not os.path.isfile(filename):
             download_from_url(url=model_urls[model_name], filename=filename)
@@ -66,9 +74,9 @@ def create_model(model_name, pretrained=False, out_features=["P3", "P4", "P5"]):
                 # (1) k = backbone.* or (2) k = *
             backbone_state_dict[k] = v
         pretrained_model_state_dict = intersect_dicts(backbone_state_dict, model.state_dict())
-        
+
         assert len(pretrained_model_state_dict) == len(model.state_dict())
-        model.load_state_dict(pretrained_model_state_dict, len(model.state_dict()))
+        model.load_state_dict(pretrained_model_state_dict, strict=True)
     
     
     def init_yolo(M):

@@ -16,13 +16,14 @@ class YOLOFPN(nn.Module):
 
     def __init__(
         self,
+        input_tensor_channels=3,
         depth=53,
         in_features=["dark3", "dark4", "dark5"],
         out_features=["P3", "P4", "P5"],
     ):
         super().__init__()
 
-        self.backbone = Darknet(depth)
+        self.backbone = Darknet(depth, in_channels=input_tensor_channels)
         self.in_features = in_features
         self.out_features = out_features
         self.scaling_factor = {"depth": 1.0, "width": 1.0}
