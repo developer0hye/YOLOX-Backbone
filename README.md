@@ -89,7 +89,7 @@ There is one creation argument impacting the output features.
 
 You can create the model without the constraint that the number of input channel is 3.
 
-But you cannot set pretrained to `True`.
+But you have to set `pretrained` to `False`.
  
 ```python
 import yolox_backbone
