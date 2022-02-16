@@ -18,7 +18,7 @@ class YOLOFPN(nn.Module):
         self,
         input_tensor_channels=3,
         depth=53,
-        in_features=["dark3", "dark4", "dark5"],
+        in_features=["C3", "C4", "C5"],
         out_features=["P3", "P4", "P5"],
     ):
         super().__init__()
@@ -39,6 +39,10 @@ class YOLOFPN(nn.Module):
 
         # upsample
         self.upsample = nn.Upsample(scale_factor=2, mode="nearest")
+        
+        self.p3_exists = "P3" in self.out_features
+        self.p4_exists = "P4" in self.out_features
+        self.p5_exists = "P5" in self.out_features
 
     def _make_cbl(self, _in, _out, ks):
         return BaseConv(_in, _out, ks, stride=1, act="lrelu")
@@ -72,22 +76,27 @@ class YOLOFPN(nn.Module):
         out_features = self.backbone(inputs)
         x2, x1, x0 = [out_features[f] for f in self.in_features]
 
-        outputs = {"P5": x0}
-        
-        if "P3" in self.out_features or "P4" in self.out_features:
-            #  yolo branch 1
-            x1_in = self.out1_cbl(x0)
-            x1_in = self.upsample(x1_in)
-            x1_in = torch.cat([x1_in, x1], 1)
-            out_dark4 = self.out1(x1_in)
-            outputs["P4"] = out_dark4
+        if self.p3_exists or self.p4_exists or self.p5_exists:
+            x2 = out_features["C3"]
+            x1 = out_features["C4"]
+            x0 = out_features["C5"]
+            
+            out_features["P5"] = x0
+            
+            if self.p3_exists or self.p4_exists:
+                #  yolo branch 1
+                x1_in = self.out1_cbl(x0)
+                x1_in = self.upsample(x1_in)
+                x1_in = torch.cat([x1_in, x1], 1)
+                out_dark4 = self.out1(x1_in)
+                out_features["P4"] = out_dark4
 
-        if "P3" in self.out_features:
-            #  yolo branch 2
-            x2_in = self.out2_cbl(out_dark4)
-            x2_in = self.upsample(x2_in)
-            x2_in = torch.cat([x2_in, x2], 1)
-            out_dark3 = self.out2(x2_in)
-            outputs["P3"] = out_dark3
+            if self.p3_exists:
+                #  yolo branch 2
+                x2_in = self.out2_cbl(out_dark4)
+                x2_in = self.upsample(x2_in)
+                x2_in = torch.cat([x2_in, x2], 1)
+                out_dark3 = self.out2(x2_in)
+                out_features["P3"] = out_dark3
 
-        return {k:v for k, v in outputs.items() if k in self.out_features}
+        return {k:v for k, v in out_features.items() if k in self.out_features}

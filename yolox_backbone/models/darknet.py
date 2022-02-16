@@ -16,7 +16,7 @@ class Darknet(nn.Module):
         depth,
         in_channels=3,
         stem_out_channels=32,
-        out_features=("dark3", "dark4", "dark5"),
+        out_features=["C3", "C4", "C5"],
     ):
         """
         Args:
@@ -82,16 +82,16 @@ class Darknet(nn.Module):
     def forward(self, x):
         outputs = {}
         x = self.stem(x)
-        outputs["stem"] = x
+        outputs["C1"] = x
         x = self.dark2(x)
-        outputs["dark2"] = x
+        outputs["C2"] = x
         x = self.dark3(x)
-        outputs["dark3"] = x
+        outputs["C3"] = x
         x = self.dark4(x)
-        outputs["dark4"] = x
+        outputs["C4"] = x
         x = self.dark5(x)
-        outputs["dark5"] = x
-        return {k: v for k, v in outputs.items() if k in self.out_features}
+        outputs["C5"] = x
+        return outputs
 
 
 class CSPDarknet(nn.Module):
@@ -100,7 +100,7 @@ class CSPDarknet(nn.Module):
         input_tensor_channels,
         dep_mul,
         wid_mul,
-        out_features=("dark3", "dark4", "dark5"),
+        out_features=["C3", "C4", "C5"],
         depthwise=False,
         act="silu",
     ):
@@ -168,13 +168,13 @@ class CSPDarknet(nn.Module):
     def forward(self, x):
         outputs = {}
         x = self.stem(x)
-        outputs["stem"] = x
+        outputs["C1"] = x
         x = self.dark2(x)
-        outputs["dark2"] = x
+        outputs["C2"] = x
         x = self.dark3(x)
-        outputs["dark3"] = x
+        outputs["C3"] = x
         x = self.dark4(x)
-        outputs["dark4"] = x
+        outputs["C4"] = x
         x = self.dark5(x)
-        outputs["dark5"] = x
-        return {k: v for k, v in outputs.items() if k in self.out_features}
+        outputs["C5"] = x
+        return outputs
