@@ -40,8 +40,8 @@ def create_model(model_name,
         raise RuntimeError(f"Unknown model {model_name}")
     
     out_features = list(set(out_features))
-    if not all(out_feature in ["P3", "P4", "P5"] for out_feature in out_features):
-        raise RuntimeError(f'The values in out_features must be one of ["P3", "P4", "P5"].')
+    if not all(out_feature in ["C3", "C4", "C5", "P3", "P4", "P5"] for out_feature in out_features):
+        raise RuntimeError(f'The values in out_features must be one of ["C3", "C4", "C5", "P3", "P4", "P5"].')
 
     Backbone = YOLOFPN if model_name == "yolox-darknet53" else YOLOPAFPN
     
